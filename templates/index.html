@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skelichelli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            background: #161618 url('https://www.transparenttextures.com/patterns/asfalt-light.png');
+            color: #f3f3f3;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(24, 24, 28, 0.98);
+            border-radius: 18px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+            border: 2px solid #23232a;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 18px;
+            font-family: 'Pirata One', cursive;
+            font-size: 3em;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 2px 12px #000, 0 0 8px #7ed95744;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            color: #bdbdbd;
+            margin-bottom: 40px;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            letter-spacing: 1px;
+        }
+        .products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            justify-content: center;
+        }
+        .card {
+            background: #1a1a1d url('https://www.transparenttextures.com/patterns/noise.png');
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+            padding: 24px 18px 18px 18px;
+            width: 270px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid #333;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 440px;
+        }
+        .card:hover {
+            transform: translateY(-8px) scale(1.04) rotate(-1deg);
+            box-shadow: 0 8px 40px #7ed95733, 0 2px 24px #000;
+            border-color: #7ed957;
+        }
+        .card img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            background: #111;
+            border: 2px solid #444;
+            box-shadow: 0 2px 12px #000;
+            filter: grayscale(100%) contrast(1.2) brightness(0.92) drop-shadow(0 0 8px #7ed95744);
+        }
+        .card h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.25em;
+            font-family: 'Pirata One', cursive;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 6px #000, 0 0 4px #7ed95722;
+        }
+        .card p {
+            margin: 0 0 18px 0;
+            font-size: 1em;
+            color: #e0e0e0;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 2.6em;
+            max-height: 2.6em;
+        }
+        .card-content {
+            flex: 1 1 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card-footer {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: auto;
+        }
+        .price {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #7ed957;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 4px #000;
+        }
+        .add-btn {
+            background: linear-gradient(90deg, #7ed957 0%, #23232a 100%);
+            color: #18181b;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 28px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px #000;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            margin-bottom: 8px;
+        }
+        .add-btn:hover {
+            background: linear-gradient(90deg, #23232a 0%, #7ed957 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px #7ed95744, 0 2px 12px #000;
+        }
+        .skull {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.2em;
+            color: #7ed957;
+            text-shadow: 0 2px 8px #000, 0 0 8px #7ed95744;
+            pointer-events: none;
+        }
+        /* Floating basket button */
+        .basket-fab {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 1100;
+            background: linear-gradient(90deg, #23232a 0%, #7ed957 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 4px 24px #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .basket-fab:hover {
+            background: linear-gradient(90deg, #7ed957 0%, #23232a 100%);
+            color: #7ed957;
+            box-shadow: 0 8px 32px #7ed95744, 0 2px 24px #000;
+        }
+        .basket-fab .fab-count {
+            position: absolute;
+            left: 2px;
+            bottom: 2px;
+            background: #7ed957;
+            color: #23232a;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65em;
+            font-weight: 700;
+            box-shadow: 0 2px 8px #000;
+        }
+        /* Basket modal */
+        .basket-modal {
+            display: none;
+            position: fixed;
+            z-index: 1200;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: auto;
+            background: rgba(0,0,0,0.7);
+        }
+        .basket-modal-content {
+            background: #1a1a1d url('https://www.transparenttextures.com/patterns/noise.png');
+            margin: 60px auto;
+            padding: 32px 24px 24px 24px;
+            border: 2px solid #333;
+            border-radius: 14px;
+            max-width: 400px;
+            box-shadow: 0 4px 24px #000;
+            color: #f3f3f3;
+            position: relative;
+        }
+        .basket-modal .close {
+            color: #7ed957;
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 2em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .basket-modal .close:hover {
+            color: #fff;
+        }
+        .basket-title {
+            font-family: 'Pirata One', cursive;
+            color: #fff;
+            font-size: 1.3em;
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .basket-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 18px 0;
+        }
+        .basket-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #f3f3f3;
+            gap: 12px;
+        }
+        .basket-list span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .basket-list .qty-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+        }
+        .basket-list li > span:first-child {
+            flex: 1 1 0;
+            text-align: center;
+        }
+        .basket-list li > span:last-child {
+            min-width: 60px;
+            text-align: right;
+        }
+        .basket-list button {
+            background: #23232a;
+            color: #7ed957;
+            border: none;
+            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            font-size: 1.1em;
+            font-weight: 700;
+            margin: 0 4px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .basket-list button:hover {
+            background: #7ed957;
+            color: #23232a;
+        }
+        .basket-total {
+            text-align: right;
+            font-weight: 700;
+            color: #7ed957;
+            margin-bottom: 18px;
+        }
+        .checkout-btn {
+            background: linear-gradient(90deg, #7ed957 0%, #23232a 100%);
+            color: #18181b;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 8px #000;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        .checkout-btn:hover {
+            background: linear-gradient(90deg, #23232a 0%, #7ed957 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px #7ed95744, 0 2px 12px #000;
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: auto;
+            background: rgba(0,0,0,0.7);
+        }
+        .modal-content {
+            background: #1a1a1d url('https://www.transparenttextures.com/patterns/noise.png');
+            margin: 60px auto;
+            padding: 32px 24px 24px 24px;
+            border: 2px solid #333;
+            border-radius: 14px;
+            max-width: 400px;
+            box-shadow: 0 4px 24px #000;
+            color: #f3f3f3;
+            position: relative;
+        }
+        .close {
+            color: #7ed957;
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 2em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #fff;
+        }
+        .modal label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: #7ed957;
+            font-size: 1em;
+        }
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #23232a;
+            color: #f3f3f3;
+            font-size: 1em;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            text-align: center;
+        }
+        .modal input:focus {
+            outline: none;
+            border-color: #7ed957;
+        }
+        .modal .form-title {
+            font-family: 'Pirata One', cursive;
+            color: #fff;
+            font-size: 1.3em;
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .modal .form-error {
+            color: #e74c3c;
+            font-size: 1em;
+            margin-bottom: 10px;
+            text-align: center;
+            display: none;
+        }
+        .delivery-form input,
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #23232a;
+            color: #f3f3f3;
+            font-size: 1em;
+            font-family: 'Inter', Arial, Helvetica, sans-serif;
+            text-align: center;
+        }
+        .delivery-form input:focus,
+        .modal input:focus {
+            outline: none;
+            border-color: #7ed957;
+        }
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content label,
+        .modal-content input {
+            width: 90%;
+            max-width: 320px;
+        }
+        .modal-content label {
+            text-align: center;
+        }
+        .modal-content input {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .modal-content .checkout-btn {
+            width: 90%;
+            max-width: 320px;
+        }
+        /* Responsive styles */
+        @media (max-width: 900px) {
+            .products {
+                flex-direction: column;
+                align-items: center;
+            }
+            .container {
+                padding: 10px;
+            }
+            .basket-modal-content {
+                max-width: 98vw;
+                padding: 16px 2vw 16px 2vw;
+            }
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            .container {
+                max-width: 100vw;
+                padding: 2vw;
+            }
+            .card {
+                width: 96vw;
+                min-width: 0;
+                padding: 12px 2vw 12px 2vw;
+            }
+            .basket-modal-content {
+                max-width: 100vw;
+                padding: 8px 2vw 8px 2vw;
+            }
+            .modal-content {
+                max-width: 98vw;
+                padding: 16px 2vw 16px 2vw;
+            }
+            .basket-title, .form-title {
+                font-size: 1.1em;
+            }
+            .basket-list li {
+                font-size: 0.98em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Skelichelli</h1>
+        <div class="subtitle">Underground Grunge & Goth T-Shirts</div>
+        <div class="products">
+            <div class="card">
+                <div class="skull">&#128128;</div>
+                <div class="card-content">
+                    <img src="{{ url_for('static', filename='images/skeleton1.jpg') }}" alt="Classic T-Shirt">
+                    <h2>Classic T-Shirt</h2>
+                    <p>100% cotton, unisex, XXL size.</p>
+                </div>
+                <div class="card-footer">
+                    <div class="price">$20.00</div>
+                    <button class="add-btn" onclick="addToBasket('classic_white')">Add to Basket</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="skull">&#9760;&#65039;</div>
+                <div class="card-content">
+                    <img src="{{ url_for('static', filename='images/skeleton2.jpg') }}" alt="Black Logo Tee">
+                    <h2>Black Logo Tee</h2>
+                    <p>Soft touch, premium print. Cyber-skeleton.</p>
+                </div>
+                <div class="card-footer">
+                    <div class="price">$25.00</div>
+                    <button class="add-btn" onclick="addToBasket('black_logo')">Add to Basket</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="skull">&#128123;</div>
+                <div class="card-content">
+                    <img src="{{ url_for('static', filename='images/skeleton3.jpg') }}" alt="Summer Tee">
+                    <h2>Summer Tee</h2>
+                    <p>Bright, comfy, limited edition. Neon bones for summer nights.</p>
+                </div>
+                <div class="card-footer">
+                    <div class="price">$22.00</div>
+                    <button class="add-btn" onclick="addToBasket('colorful_summer')">Add to Basket</button>
+                </div>
+            </div>
+        </div>
+        <!-- Floating basket button -->
+        <button class="basket-fab" id="basketFab" onclick="openBasketModal()" title="View Basket">
+            <span>&#128722;</span>
+            <span class="fab-count" id="basketFabCount">0</span>
+        </button>
+        <!-- Basket modal -->
+        <div id="basketModal" class="basket-modal">
+            <div class="basket-modal-content">
+                <span class="close" onclick="closeBasketModal()">&times;</span>
+                <div class="basket-title">Your Basket</div>
+                <ul class="basket-list" id="basketList"></ul>
+                <div class="basket-total" id="basketTotal"></div>
+                <button class="checkout-btn" id="checkoutBtn" onclick="openCheckoutModal()" disabled>Checkout</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal for delivery info -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCheckoutModal()">&times;</span>
+            <form id="deliveryForm" autocomplete="off" onsubmit="submitCheckout(event)">
+                <div class="form-title">Delivery Info</div>
+                <div class="form-error" id="formError"></div>
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" required maxlength="60" placeholder="e.g. Ivan Ivanov">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" required maxlength="20" placeholder="e.g. +380991234567">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city" required maxlength="40" placeholder="e.g. Kyiv">
+                <label for="branch">Nova Poshta Branch</label>
+                <input type="text" id="branch" name="branch" required maxlength="20" placeholder="e.g. 12">
+                <button type="submit" class="checkout-btn" style="margin-top:10px;">Pay with Stripe</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        var stripe = Stripe("{{ stripe_publishable_key }}");
+        // Product info
+        var products = {
+            'classic_white': { name: 'Classic White T-Shirt', price: 2000 },
+            'black_logo': { name: 'Black Logo Tee', price: 2500 },
+            'colorful_summer': { name: 'Colorful Summer Tee', price: 2200 }
+        };
+        // Basket state
+        var basket = {};
+        function addToBasket(productId) {
+            if (!basket[productId]) basket[productId] = 0;
+            basket[productId]++;
+            renderBasket();
+        }
+        function removeFromBasket(productId) {
+            if (basket[productId]) {
+                basket[productId]--;
+                if (basket[productId] <= 0) delete basket[productId];
+                renderBasket();
+            }
+        }
+        function renderBasket() {
+            var list = document.getElementById('basketList');
+            var total = 0;
+            var itemCount = 0;
+            list.innerHTML = '';
+            Object.keys(basket).forEach(function(pid) {
+                var qty = basket[pid];
+                var item = products[pid];
+                var li = document.createElement('li');
+                li.innerHTML = `<span>${item.name}</span> <div class="qty-controls"><button onclick="removeFromBasket('${pid}')">-</button> <span>${qty}</span> <button onclick="addToBasket('${pid}')">+</button></div> <span>$${((item.price * qty)/100).toFixed(2)}</span>`;
+                list.appendChild(li);
+                total += item.price * qty;
+                itemCount += qty;
+            });
+            document.getElementById('basketTotal').textContent = 'Total: $' + (total/100).toFixed(2);
+            document.getElementById('checkoutBtn').disabled = total === 0;
+            // Update floating basket count
+            document.getElementById('basketFabCount').textContent = itemCount;
+        }
+        // Basket modal logic
+        function openBasketModal() {
+            document.getElementById('basketModal').style.display = 'block';
+        }
+        function closeBasketModal() {
+            document.getElementById('basketModal').style.display = 'none';
+        }
+        // Modal logic for delivery
+        function openCheckoutModal() {
+            closeBasketModal();
+            document.getElementById('checkoutModal').style.display = 'block';
+        }
+        function closeCheckoutModal() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            var basketModal = document.getElementById('basketModal');
+            var checkoutModal = document.getElementById('checkoutModal');
+            if (event.target === basketModal) closeBasketModal();
+            if (event.target === checkoutModal) closeCheckoutModal();
+        }
+        // Delivery form validation
+        function validateForm() {
+            var fullName = document.getElementById('fullName').value.trim();
+            var phone = document.getElementById('phone').value.trim();
+            var city = document.getElementById('city').value.trim();
+            var branch = document.getElementById('branch').value.trim();
+            var error = '';
+            if (!fullName) error = 'Please enter your full name.';
+            else if (!phone.match(/^\+?\d{10,15}$/)) error = 'Please enter a valid phone number.';
+            else if (!city) error = 'Please enter your city.';
+            else if (!branch) error = 'Please enter your Nova Poshta branch.';
+            document.getElementById('formError').textContent = error;
+            document.getElementById('formError').style.display = error ? 'block' : 'none';
+            return !error;
+        }
+        function getDeliveryInfo() {
+            return {
+                full_name: document.getElementById('fullName').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                branch: document.getElementById('branch').value.trim()
+            };
+        }
+        function submitCheckout(e) {
+            e.preventDefault();
+            if (!validateForm()) return;
+            var deliveryInfo = getDeliveryInfo();
+            var basketItems = Object.keys(basket).map(function(pid) {
+                return { product_id: pid, quantity: basket[pid] };
+            });
+            fetch('/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ basket: basketItems, delivery: deliveryInfo })
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (session) {
+                if(session.id) {
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                } else {
+                    alert(session.error || 'Failed to create checkout session.');
+                }
+            })
+            .then(function (result) {
+                if (result && result.error) {
+                    alert(result.error.message);
+                }
+            });
+        }
+        // Initial render
+        renderBasket();
+    </script>
+</body>
+</html> 

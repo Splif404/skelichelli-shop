@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Buy T-Shirt</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h1>Buy a T-Shirt - $20.00</h1>
+    <button id="checkout-button">Checkout with Stripe</button>
+    <script>
+        var stripe = Stripe('pk_test_your_publishable_key_here'); // Replace with your test publishable key
+        document.getElementById('checkout-button').addEventListener('click', function () {
+            fetch('/create-checkout-session', { method: 'POST' })
+                .then(function (response) { return response.json(); })
+                .then(function (session) {
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                })
+                .then(function (result) {
+                    if (result.error) {
+                        alert(result.error.message);
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+</html> 
